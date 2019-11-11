@@ -1,11 +1,14 @@
 import os
 import aiohttp
+import functools
 
 from gloop.channels.redis import RedisChannel
 from gloop.channels.web_socket import WebSocketChannel
 
-
 DEFAULT_ROUTE = '/'
+
+REDIS_ADDRESS_KEY = 'REDIS_ADDRESS'
+DEFAULT_REDIS_ADDRESS = 'redis://localhost:6379'
 
 WAITING_LIST_CHANNEL_NAME_KEY = 'WAITING_LIST_CHANNEL_NAME'
 DEFAULT_WAITING_LIST_CHANNEL_NAME = 'waiting_list'
@@ -69,6 +72,13 @@ def receive_player(
 
 if __name__ == '__main__':
 
+    print(os.environ.get(REDIS_ADDRESS_KEY))
+
+    REDIS_ADDRESS = os.environ.get(
+        REDIS_ADDRESS_KEY,
+        DEFAULT_REDIS_ADDRESS
+    )
+
     _waiting_list_channel_name = os.environ.get(
         WAITING_LIST_CHANNEL_NAME_KEY,
         DEFAULT_WAITING_LIST_CHANNEL_NAME
@@ -79,7 +89,11 @@ if __name__ == '__main__':
         DEFAULT_NEW_MATCHES_CHANNEL_NAME
     )
 
-    _channel_factory = DEFAULT_CHANNEL_FACTORY
+    _channel_factory = functools.partial(
+        DEFAULT_CHANNEL_FACTORY,
+        address=REDIS_ADDRESS
+    )
+
     _client_channel_factory = DEFAULT_CLIENT_CHANNEL_FACTORY
 
     _game_loop = DEFAULT_GAME_LOOP
